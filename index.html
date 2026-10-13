@@ -248,6 +248,45 @@
   .footer-tag{ font-family:'Fraunces',serif; font-style:italic; color:var(--gold-soft); font-size:1.05rem; }
   .footer-bottom{ display:flex; justify-content:space-between; padding-top:24px; font-size:0.82rem; flex-wrap:wrap; gap:10px;}
 
+  /* ---------- ACTUALITES ---------- */
+  .news{ background:var(--parchment); }
+  .news-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:28px; }
+  .news-card{ background:#fff; border:1px solid var(--line); padding:30px 28px; border-top:4px solid var(--leaf); }
+  .news-card.v-assainissement{ border-top-color:var(--gold); }
+  .news-card .meta{ font-size:0.75rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--soil); font-weight:600; }
+  .news-card h3{ font-size:1.2rem; margin:10px 0; font-weight:600; }
+  .news-card p{ color:var(--ink-soft); font-size:0.94rem; white-space:pre-line; }
+  @media (max-width:840px){ .news-grid{ grid-template-columns:1fr; } }
+
+  /* ---------- Retours des formulaires ---------- */
+  .hp{ position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+  .form-status{ margin-top:16px; padding:14px 16px; font-size:0.9rem; border-radius:2px; display:none; }
+  .form-status.ok{ display:block; background:#E5F2E7; color:var(--forest-deep); border-left:4px solid var(--leaf); }
+  .form-status.err{ display:block; background:#FBEAEA; color:#7A1F1F; border-left:4px solid #B23B3B; }
+  .form-status code{ font-family:'Fraunces',serif; font-weight:600; font-size:1rem; letter-spacing:0.04em; }
+  button[disabled]{ opacity:0.6; cursor:wait !important; }
+  .link-btn{ background:none; border:none; color:var(--leaf); font:inherit; font-size:0.88rem; font-weight:600; cursor:pointer; margin-top:16px; text-decoration:underline; }
+  .suivi{ display:none; margin-top:18px; padding-top:18px; border-top:1px dashed var(--line); }
+  .suivi.open{ display:block; }
+  .suivi-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .suivi-row input{ flex:1 1 140px; padding:11px 12px; border:1px solid var(--line); background:var(--parchment); font-family:inherit; font-size:0.9rem; }
+  .don-aside .field label{ color:var(--gold-soft); }
+  .don-aside .field input, .don-aside .field select{ background:rgba(246,241,228,0.08); border-color:rgba(246,241,228,0.3); color:var(--parchment); }
+  .don-aside .field select option{ color:var(--ink); }
+  .don-aside .field input::placeholder{ color:rgba(246,241,228,0.5); }
+  .don-aside .form-status.ok{ background:rgba(124,196,138,0.15); color:var(--parchment); }
+  .don-aside .form-status.err{ background:rgba(178,59,59,0.25); color:#fff; }
+  #montantAutre{ display:none; margin-bottom:22px; }
+  #montantAutre.open{ display:block; }
+
+  /* ---------- Newsletter ---------- */
+  .newsletter{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .newsletter input{ padding:10px 12px; border:1px solid rgba(246,241,228,0.3); background:rgba(246,241,228,0.08); color:var(--parchment); font-family:inherit; min-width:220px; }
+  .newsletter input::placeholder{ color:rgba(246,241,228,0.5); }
+  .newsletter button{ padding:10px 16px; background:var(--gold); color:var(--forest-deep); border:none; font-weight:600; cursor:pointer; font-family:inherit; }
+  .newsletter-msg{ font-size:0.82rem; color:var(--gold-soft); width:100%; }
+  .footer-mid{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; padding:26px 0; border-bottom:1px solid rgba(246,241,228,0.14); }
+
   .reveal{ opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s ease; }
   .reveal.in{ opacity:1; transform:translateY(0); }
 </style>
@@ -394,10 +433,21 @@
 
 <section id="impact" class="impact">
   <div class="wrap">
-    <div class="stat reveal"><div class="figure">+120</div><div class="label">Membres engagés</div></div>
+    <div class="stat reveal"><div class="figure" id="statMembres">+120</div><div class="label">Membres engagés</div></div>
     <div class="stat reveal"><div class="figure">2</div><div class="label">Volets d'action</div></div>
     <div class="stat reveal"><div class="figure">100%</div><div class="label">Communautaire</div></div>
-    <div class="stat reveal"><div class="figure">1</div><div class="label">Vision partagée</div></div>
+    <div class="stat reveal" id="statLast"><div class="figure">1</div><div class="label">Vision partagée</div></div>
+  </div>
+</section>
+
+<section id="actualites" class="news" hidden>
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Sur le terrain</div>
+      <h2>Nos dernières actions</h2>
+      <p>Les nouvelles de la coopérative, publiées directement par notre équipe.</p>
+    </div>
+    <div class="news-grid" id="newsGrid"></div>
   </div>
 </section>
 
@@ -409,8 +459,10 @@
       <p>Remplissez le formulaire pour devenir membre, ou choisissez de soutenir directement nos actions par un don.</p>
     </div>
     <div class="join-grid">
-      <form class="form-card reveal" action="mailto:maryleneclairearoungoho@gmail.com" method="post" enctype="text/plain">
+      <div>
+      <form class="form-card reveal" id="formAdhesion" data-api="/api/adhesions" action="mailto:maryleneclairearoungoho@gmail.com" method="post" enctype="text/plain">
         <h3>Formulaire d'adhésion</h3>
+        <div class="hp" aria-hidden="true"><label>Site web <input name="site_web" tabindex="-1" autocomplete="off"></label></div>
         <p class="sub">Vos informations nous permettent de vous recontacter pour finaliser votre adhésion.</p>
         <div class="field">
           <label for="nom">Nom complet</label>
@@ -437,20 +489,56 @@
           <textarea id="message" name="message" placeholder="Parlez-nous de votre motivation..."></textarea>
         </div>
         <button type="submit" class="btn btn-primary" style="width:100%; border:none; cursor:pointer;">Envoyer ma demande d'adhésion</button>
+        <div class="form-status" role="status" aria-live="polite"></div>
+        <button type="button" class="link-btn" id="suiviToggle">Déjà inscrit ? Suivre ma demande</button>
       </form>
+      <form class="form-card suivi" id="formSuivi" style="margin-top:0; border-top:none;">
+        <p class="sub" style="margin-bottom:12px;">Entrez la référence reçue lors de votre inscription et votre numéro de téléphone.</p>
+        <div class="suivi-row">
+          <input name="ref" placeholder="ADH-2026-XXXXXX" required aria-label="Référence">
+          <input name="tel" type="tel" placeholder="Téléphone" required aria-label="Téléphone">
+          <button type="submit" class="btn btn-outline" style="cursor:pointer; background:none; padding:10px 18px;">Vérifier</button>
+        </div>
+        <div class="form-status" role="status" aria-live="polite"></div>
+      </form>
+      </div>
 
       <div id="don">
-        <div class="don-aside reveal">
+        <form class="don-aside reveal" id="formDon" data-api="/api/dons">
           <h3>Faire un don</h3>
           <p>Chaque contribution finance directement une action agro-pastorale ou une campagne d'assainissement dans le quartier.</p>
+          <div class="hp" aria-hidden="true"><label>Site web <input name="site_web" tabindex="-1" autocomplete="off"></label></div>
           <div class="amounts">
-            <button type="button">10&nbsp;€</button>
-            <button type="button" class="active">25&nbsp;€</button>
-            <button type="button">50&nbsp;€</button>
-            <button type="button">Autre</button>
+            <button type="button" data-montant="10">10&nbsp;€</button>
+            <button type="button" data-montant="25" class="active">25&nbsp;€</button>
+            <button type="button" data-montant="50">50&nbsp;€</button>
+            <button type="button" data-montant="autre">Autre</button>
           </div>
-          <a href="mailto:maryleneclairearoungoho@gmail.com?subject=Je%20souhaite%20faire%20un%20don" class="btn btn-gold" style="width:100%; text-align:center;">Contacter pour finaliser mon don</a>
-        </div>
+          <div class="field" id="montantAutre">
+            <label for="dmontant">Montant de votre choix (€)</label>
+            <input id="dmontant" type="number" min="1" max="100000" step="1" placeholder="Ex. 15">
+          </div>
+          <input type="hidden" name="montant" value="25">
+          <div class="field">
+            <label for="dnom">Votre nom</label>
+            <input id="dnom" name="nom" type="text" placeholder="Nom et prénom" required>
+          </div>
+          <div class="field">
+            <label for="dtel">Téléphone</label>
+            <input id="dtel" name="tel" type="tel" placeholder="6XX XX XX XX" required>
+          </div>
+          <div class="field">
+            <label for="dmoyen">Comment souhaitez-vous donner ?</label>
+            <select id="dmoyen" name="moyen">
+              <option>Mobile Money</option>
+              <option>Orange Money</option>
+              <option>Virement</option>
+              <option>Espèces</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-gold" style="width:100%; text-align:center; border:none; cursor:pointer;">Je m'engage à donner</button>
+          <div class="form-status" role="status" aria-live="polite"></div>
+        </form>
         <div class="form-card" style="margin-top:24px;">
           <h3>Pourquoi donner ?</h3>
           <p class="sub" style="margin-bottom:0;">Vos dons financent les semences, le petit élevage, le matériel de nettoyage et les campagnes de sensibilisation menées par nos équipes locales.</p>
@@ -479,9 +567,10 @@
         <div><strong>Adresse</strong>Siège social — Messamendongo</div>
       </div>
     </div>
-    <form class="form-card reveal" action="mailto:maryleneclairearoungoho@gmail.com" method="post" enctype="text/plain">
+    <form class="form-card reveal" id="formContact" data-api="/api/messages" action="mailto:maryleneclairearoungoho@gmail.com" method="post" enctype="text/plain">
       <h3>Envoyer un message</h3>
       <p class="sub">Nous revenons vers vous sous quelques jours ouvrés.</p>
+      <div class="hp" aria-hidden="true"><label>Site web <input name="site_web" tabindex="-1" autocomplete="off"></label></div>
       <div class="field">
         <label for="cnom">Nom</label>
         <input id="cnom" name="nom" type="text" placeholder="Votre nom" required>
@@ -499,6 +588,7 @@
         <textarea id="cmessage" name="message" placeholder="Votre message..." required></textarea>
       </div>
       <button type="submit" class="btn btn-primary" style="width:100%; border:none; cursor:pointer;">Envoyer le message</button>
+      <div class="form-status" role="status" aria-live="polite"></div>
     </form>
   </div>
 </section>
@@ -516,9 +606,21 @@
       </div>
       <div class="footer-tag">« Une main qui rassemble, une vision qui élève, une communauté qui grandit »</div>
     </div>
+    <div class="footer-mid">
+      <div>
+        <strong style="color:#F6F1E4;">Restez informé</strong><br>
+        <span style="font-size:0.88rem;">Recevez les nouvelles de nos actions sur le terrain.</span>
+      </div>
+      <form class="newsletter" id="formNewsletter" data-api="/api/newsletter">
+        <div class="hp" aria-hidden="true"><input name="site_web" tabindex="-1" autocomplete="off"></div>
+        <input type="email" name="email" placeholder="vous@exemple.com" required aria-label="Votre e-mail">
+        <button type="submit">S'inscrire</button>
+        <div class="newsletter-msg form-status-nl" role="status" aria-live="polite"></div>
+      </form>
+    </div>
     <div class="footer-bottom">
       <span>© 2026 Coopérative Renaissance. Tous droits réservés.</span>
-      <span><a href="#mission">Mission</a> · <a href="#activites">Activités</a> · <a href="#contact">Contact</a></span>
+      <span><a href="#mission">Mission</a> · <a href="#activites">Activités</a> · <a href="#contact">Contact</a> · <a href="/admin">Espace gestion</a></span>
     </div>
   </div>
 </footer>
@@ -530,12 +632,176 @@
   }, {threshold:0.15});
   els.forEach(el=>io.observe(el));
 
+  /* ---------- Montant du don ---------- */
+  const montantInput = document.querySelector('#formDon input[name="montant"]');
+  const montantAutre = document.getElementById('montantAutre');
+  const montantLibre = document.getElementById('dmontant');
   document.querySelectorAll('.amounts button').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       document.querySelectorAll('.amounts button').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
+      const autre = btn.dataset.montant === 'autre';
+      montantAutre.classList.toggle('open', autre);
+      montantLibre.required = autre;
+      montantInput.value = autre ? montantLibre.value : btn.dataset.montant;
+      if(autre) montantLibre.focus();
     });
   });
+  montantLibre.addEventListener('input', ()=>{ montantInput.value = montantLibre.value; });
+
+  /* ---------- Envoi des formulaires vers l'API ---------- */
+  const CONTACT_EMAIL = 'maryleneclairearoungoho@gmail.com';
+
+  async function api(url, data){
+    const res = await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    let body = null;
+    try{ body = await res.json(); }catch(e){}
+    // Pas de serveur (site hébergé en statique) : on le signale à l'appelant.
+    if(!body) throw new Error('offline');
+    return { status:res.status, body };
+  }
+
+  function showStatus(el, type, html){
+    el.className = 'form-status ' + type;
+    el.innerHTML = html;
+  }
+
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  const SUCCESS = {
+    formAdhesion: r => `Merci&nbsp;! Votre demande d'adhésion est enregistrée. Votre référence&nbsp;: <code>${esc(r.ref)}</code><br>Conservez-la pour suivre votre demande. Nous vous appelons très bientôt.`,
+    formDon: r => `Merci pour votre générosité&nbsp;! Votre promesse de don <code>${esc(r.ref)}</code> est enregistrée. Un membre de l'équipe vous contacte pour la finaliser.`,
+    formContact: () => `Message bien reçu, merci&nbsp;! Nous vous répondons sous quelques jours ouvrés.`
+  };
+
+  ['formAdhesion','formDon','formContact'].forEach(id=>{
+    const form = document.getElementById(id);
+    const status = form.querySelector('.form-status');
+    const submit = form.querySelector('button[type="submit"]');
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(form));
+      submit.disabled = true;
+      try{
+        const { status:code, body } = await api(form.dataset.api, data);
+        if(body.ok){
+          showStatus(status, 'ok', SUCCESS[id](body));
+          form.reset();
+          if(id === 'formDon'){ document.querySelector('.amounts button[data-montant="25"]').click(); }
+          loadStats();
+        } else {
+          showStatus(status, 'err', esc(body.error || 'Une erreur est survenue.'));
+        }
+      }catch(err){
+        // Repli : ouverture de la messagerie, comme avant.
+        if(id === 'formDon'){
+          const subject = encodeURIComponent('Je souhaite faire un don');
+          const bodyTxt = encodeURIComponent(`Nom : ${data.nom}\nTéléphone : ${data.tel}\nMontant : ${data.montant} €\nMoyen : ${data.moyen}`);
+          window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${bodyTxt}`;
+        } else {
+          HTMLFormElement.prototype.submit.call(form);
+        }
+      }finally{
+        submit.disabled = false;
+      }
+    });
+  });
+
+  /* ---------- Suivi d'adhésion ---------- */
+  const STATUTS = {
+    en_attente:'en cours d\'examen par l\'équipe',
+    validee:'validée — bienvenue dans la coopérative&nbsp;!',
+    refusee:'non retenue pour le moment. Contactez-nous pour en savoir plus.'
+  };
+  document.getElementById('suiviToggle').addEventListener('click', ()=>{
+    document.getElementById('formSuivi').classList.toggle('open');
+  });
+  document.getElementById('formSuivi').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const form = e.target;
+    const status = form.querySelector('.form-status');
+    try{
+      const { body } = await api('/api/adhesions/suivi', Object.fromEntries(new FormData(form)));
+      if(body.ok){
+        const date = new Date(body.created_at.replace(' ','T')+'Z').toLocaleDateString('fr-FR');
+        showStatus(status, body.statut === 'refusee' ? 'err' : 'ok',
+          `Bonjour ${esc(body.prenom)}, votre demande du ${date} (${esc(body.domaine)}) est ${STATUTS[body.statut] || esc(body.statut)}`);
+      } else {
+        showStatus(status, 'err', esc(body.error));
+      }
+    }catch(err){
+      showStatus(status, 'err', 'Le suivi en ligne est momentanément indisponible. Appelez-nous au 691 10 25 69.');
+    }
+  });
+
+  /* ---------- Newsletter ---------- */
+  document.getElementById('formNewsletter').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const form = e.target;
+    const msg = form.querySelector('.newsletter-msg');
+    try{
+      const { body } = await api(form.dataset.api, Object.fromEntries(new FormData(form)));
+      msg.textContent = body.ok ? 'Merci, vous êtes inscrit·e !' : body.error;
+      if(body.ok) form.reset();
+    }catch(err){
+      msg.textContent = 'Inscription momentanément indisponible.';
+    }
+  });
+
+  /* ---------- Chiffres en direct ---------- */
+  function countUp(el, target, prefix=''){
+    const start = performance.now(), dur = 1200;
+    const step = now=>{
+      const p = Math.min((now-start)/dur, 1);
+      el.textContent = prefix + Math.round(target * (1 - Math.pow(1-p, 3)));
+      if(p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  async function loadStats(){
+    try{
+      const res = await fetch('/api/stats');
+      if(!res.ok) return;
+      const s = await res.json();
+      countUp(document.getElementById('statMembres'), s.membres, '+');
+      if(s.actions > 0){
+        const last = document.getElementById('statLast');
+        last.querySelector('.label').textContent = s.actions > 1 ? 'Actions menées' : 'Action menée';
+        countUp(last.querySelector('.figure'), s.actions);
+      }
+    }catch(e){ /* site statique : on garde les chiffres par défaut */ }
+  }
+
+  /* ---------- Actualités ---------- */
+  const VOLETS = { 'agro-pastoral':'Agro-pastoral', 'assainissement':'Assainissement', 'general':'Coopérative' };
+  async function loadNews(){
+    try{
+      const res = await fetch('/api/actualites?limit=6');
+      if(!res.ok) return;
+      const items = await res.json();
+      if(!items.length) return;
+      const grid = document.getElementById('newsGrid');
+      grid.innerHTML = items.map(n=>{
+        const date = new Date(n.created_at.replace(' ','T')+'Z').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+        return `<article class="news-card v-${esc(n.volet)}">
+          <div class="meta">${esc(VOLETS[n.volet] || n.volet)} · ${date}</div>
+          <h3>${esc(n.titre)}</h3>
+          <p>${esc(n.contenu)}</p>
+        </article>`;
+      }).join('');
+      document.getElementById('actualites').hidden = false;
+    }catch(e){}
+  }
+
+  loadStats();
+  loadNews();
 </script>
 
 </body>

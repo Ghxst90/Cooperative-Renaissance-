@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Espace gestion — Coopérative Renaissance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --forest:#173C2B; --forest-deep:#0E2A1D; --leaf:#4C9A5D; --gold:#D6A421; --gold-soft:#F0C94E;
+    --soil:#6B4A2E; --parchment:#F6F1E4; --parchment-warm:#EFE7D2; --ink:#22271F; --ink-soft:#4C5245;
+    --line:rgba(34,39,31,0.14); --red:#B23B3B;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--parchment); color:var(--ink); font-family:'Work Sans',sans-serif; line-height:1.5; }
+  h1,h2,h3{ font-family:'Fraunces',serif; color:var(--forest-deep); font-weight:600; }
+  button, input, select, textarea{ font-family:inherit; font-size:0.92rem; }
+  .btn{ padding:10px 18px; border:none; border-radius:2px; font-weight:600; cursor:pointer; background:var(--forest-deep); color:var(--parchment); }
+  .btn.gold{ background:var(--gold); color:var(--forest-deep); }
+  .btn.ghost{ background:none; border:1px solid var(--line); color:var(--ink-soft); }
+  .btn.small{ padding:5px 10px; font-size:0.78rem; }
+  .btn.danger{ background:none; color:var(--red); border:1px solid rgba(178,59,59,0.35); }
+
+  /* Connexion */
+  #login{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:16px; }
+  #login form{ background:#fff; border:1px solid var(--line); border-top:4px solid var(--gold); padding:38px; width:100%; max-width:380px; }
+  #login h1{ font-size:1.5rem; margin-bottom:6px; }
+  #login p{ color:var(--ink-soft); font-size:0.9rem; margin-bottom:22px; }
+  #login input{ width:100%; padding:12px 14px; border:1px solid var(--line); background:var(--parchment); margin-bottom:14px; }
+  #login .btn{ width:100%; }
+  .err{ color:var(--red); font-size:0.88rem; margin-top:12px; min-height:1.2em; }
+
+  /* Tableau de bord */
+  #app{ display:none; }
+  header{ background:var(--forest-deep); color:var(--parchment); }
+  .bar{ max-width:1200px; margin:0 auto; padding:16px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  .bar h1{ color:var(--parchment); font-size:1.15rem; }
+  .bar h1 span{ color:var(--gold-soft); }
+  .bar a{ color:var(--gold-soft); font-size:0.85rem; margin-right:14px; }
+  main{ max-width:1200px; margin:0 auto; padding:28px 16px 60px; }
+  .tiles{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
+  .tile{ background:#fff; border:1px solid var(--line); padding:18px 20px; }
+  .tile .n{ font-family:'Fraunces',serif; font-size:1.9rem; color:var(--forest-deep); }
+  .tile .l{ font-size:0.8rem; color:var(--ink-soft); }
+  .tile .hint{ font-size:0.75rem; color:var(--soil); font-weight:600; margin-top:4px; }
+  @media (max-width:760px){ .tiles{ grid-template-columns:repeat(2,1fr); } }
+
+  .tabs{ display:flex; gap:4px; border-bottom:1px solid var(--line); margin-bottom:20px; overflow-x:auto; }
+  .tabs button{ background:none; border:none; padding:10px 16px; font-weight:600; color:var(--ink-soft); cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap; }
+  .tabs button.active{ color:var(--forest-deep); border-bottom-color:var(--gold); }
+  .tabs .count{ display:inline-block; background:var(--gold); color:var(--forest-deep); border-radius:10px; padding:0 7px; font-size:0.72rem; margin-left:4px; }
+  .panel{ display:none; }
+  .panel.active{ display:block; }
+  .panel-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .panel-head h2{ font-size:1.25rem; }
+
+  .table-wrap{ overflow-x:auto; background:#fff; border:1px solid var(--line); }
+  table{ width:100%; border-collapse:collapse; font-size:0.88rem; }
+  th{ text-align:left; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--soil); padding:12px 14px; border-bottom:1px solid var(--line); background:var(--parchment-warm); white-space:nowrap; }
+  td{ padding:12px 14px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:last-child td{ border-bottom:none; }
+  td.msg{ max-width:340px; white-space:pre-line; color:var(--ink-soft); }
+  td select{ padding:5px 8px; border:1px solid var(--line); background:var(--parchment); }
+  tr.unread td{ background:#FFF9E6; }
+  tr.unread td:first-child{ border-left:3px solid var(--gold); }
+  .ref{ font-family:monospace; font-size:0.82rem; }
+  .empty{ padding:30px; text-align:center; color:var(--ink-soft); }
+
+  .news-form{ background:#fff; border:1px solid var(--line); padding:22px; margin-bottom:20px; display:grid; gap:12px; }
+  .news-form input, .news-form textarea, .news-form select{ width:100%; padding:10px 12px; border:1px solid var(--line); background:var(--parchment); }
+  .news-form textarea{ min-height:110px; resize:vertical; }
+  .news-row{ display:grid; grid-template-columns:2fr 1fr; gap:12px; }
+  @media (max-width:600px){ .news-row{ grid-template-columns:1fr; } }
+  .toast{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--forest-deep); color:var(--parchment); padding:12px 20px; font-size:0.9rem; opacity:0; transition:opacity .3s; pointer-events:none; }
+  .toast.show{ opacity:1; }
+</style>
+</head>
+<body>
+
+<section id="login">
+  <form id="loginForm">
+    <h1>Espace gestion</h1>
+    <p>Coopérative Renaissance — accès réservé à l'équipe.</p>
+    <input type="password" name="password" placeholder="Mot de passe" required autofocus aria-label="Mot de passe">
+    <button class="btn" type="submit">Se connecter</button>
+    <div class="err" id="loginErr"></div>
+  </form>
+</section>
+
+<div id="app">
+  <header>
+    <div class="bar">
+      <h1>Renaissance <span>· Espace gestion</span></h1>
+      <div><a href="/" target="_blank">Voir le site ↗</a><button class="btn gold small" id="logout">Déconnexion</button></div>
+    </div>
+  </header>
+  <main>
+    <div class="tiles">
+      <div class="tile"><div class="n" id="tAdh">0</div><div class="l">Demandes d'adhésion</div><div class="hint" id="tAdhHint"></div></div>
+      <div class="tile"><div class="n" id="tDon">0 €</div><div class="l">Dons reçus</div><div class="hint" id="tDonHint"></div></div>
+      <div class="tile"><div class="n" id="tMsg">0</div><div class="l">Messages</div><div class="hint" id="tMsgHint"></div></div>
+      <div class="tile"><div class="n" id="tNl">0</div><div class="l">Abonnés newsletter</div></div>
+    </div>
+
+    <nav class="tabs" role="tablist">
+      <button data-tab="adhesions" class="active">Adhésions <span class="count" id="cAdh" hidden></span></button>
+      <button data-tab="dons">Dons <span class="count" id="cDon" hidden></span></button>
+      <button data-tab="messages">Messages <span class="count" id="cMsg" hidden></span></button>
+      <button data-tab="actualites">Actualités</button>
+      <button data-tab="newsletter">Newsletter</button>
+    </nav>
+
+    <section class="panel active" id="p-adhesions">
+      <div class="panel-head"><h2>Demandes d'adhésion</h2><button class="btn ghost small" data-export="adhesions">Télécharger (Excel/CSV)</button></div>
+      <div class="table-wrap" id="adhesionsTable"></div>
+    </section>
+
+    <section class="panel" id="p-dons">
+      <div class="panel-head"><h2>Promesses et dons</h2><button class="btn ghost small" data-export="dons">Télécharger (Excel/CSV)</button></div>
+      <div class="table-wrap" id="donsTable"></div>
+    </section>
+
+    <section class="panel" id="p-messages">
+      <div class="panel-head"><h2>Messages reçus</h2><button class="btn ghost small" data-export="messages">Télécharger (Excel/CSV)</button></div>
+      <div class="table-wrap" id="messagesTable"></div>
+    </section>
+
+    <section class="panel" id="p-actualites">
+      <div class="panel-head"><h2>Publier une actualité</h2></div>
+      <form class="news-form" id="newsForm">
+        <div class="news-row">
+          <input name="titre" placeholder="Titre (ex. Campagne de nettoyage à Messamendongo)" required>
+          <select name="volet">
+            <option value="general">Coopérative</option>
+            <option value="agro-pastoral">Agro-pastoral</option>
+            <option value="assainissement">Assainissement</option>
+          </select>
+        </div>
+        <textarea name="contenu" placeholder="Racontez l'action : ce qui a été fait, combien de personnes, les résultats…" required></textarea>
+        <div><button class="btn" type="submit">Publier sur le site</button></div>
+      </form>
+      <div class="table-wrap" id="actualitesTable"></div>
+    </section>
+
+    <section class="panel" id="p-newsletter">
+      <div class="panel-head"><h2>Abonnés à la newsletter</h2><button class="btn ghost small" data-export="newsletter">Télécharger (Excel/CSV)</button></div>
+      <div class="table-wrap" id="newsletterTable"></div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+  let token = null;
+  try{ token = sessionStorage.getItem('adminToken'); }catch(e){}
+  let data = null;
+
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmtDate = d => new Date(d.replace(' ','T')+'Z').toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const euros = n => n.toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
+
+  function toast(msg){
+    const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), 2200);
+  }
+
+  async function call(method, url, body){
+    const res = await fetch(url, {
+      method,
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+token },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    if(res.status === 401){ logout(); throw new Error('session'); }
+    const json = await res.json().catch(()=>({}));
+    if(!res.ok){ toast(json.error || 'Erreur'); throw new Error(json.error); }
+    return json;
+  }
+
+  function showApp(){ $('#login').style.display='none'; $('#app').style.display='block'; refresh(); }
+  function logout(){
+    if(token) fetch('/api/admin/logout',{method:'POST',headers:{'Authorization':'Bearer '+token}}).catch(()=>{});
+    token = null; try{ sessionStorage.removeItem('adminToken'); }catch(e){}
+    $('#app').style.display='none'; $('#login').style.display='flex';
+  }
+
+  $('#loginForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    $('#loginErr').textContent = '';
+    try{
+      const res = await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:e.target.password.value})});
+      const json = await res.json();
+      if(!json.ok){ $('#loginErr').textContent = json.error; return; }
+      token = json.token; try{ sessionStorage.setItem('adminToken', token); }catch(e){}
+      e.target.reset(); showApp();
+    }catch(err){ $('#loginErr').textContent = 'Serveur injoignable.'; }
+  });
+  $('#logout').addEventListener('click', logout);
+
+  document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click', ()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active', x===b));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id==='p-'+b.dataset.tab));
+  }));
+
+  document.querySelectorAll('[data-export]').forEach(b=>b.addEventListener('click', async ()=>{
+    const res = await fetch('/api/admin/export/'+b.dataset.export,{headers:{'Authorization':'Bearer '+token}});
+    if(!res.ok){ toast('Export impossible'); return; }
+    const url = URL.createObjectURL(await res.blob());
+    const a = Object.assign(document.createElement('a'),{href:url, download:b.dataset.export+'.csv'});
+    a.click(); URL.revokeObjectURL(url);
+  }));
+
+  function table(el, cols, rows, rowClass){
+    if(!rows.length){ el.innerHTML = '<div class="empty">Rien pour le moment.</div>'; return; }
+    el.innerHTML = `<table><thead><tr>${cols.map(c=>`<th>${c[0]}</th>`).join('')}</tr></thead><tbody>${
+      rows.map(r=>`<tr class="${rowClass ? rowClass(r) : ''}">${cols.map(c=>`<td class="${c[2]||''}">${c[1](r)}</td>`).join('')}</tr>`).join('')
+    }</tbody></table>`;
+  }
+
+  const select = (kind, r, options) =>
+    `<select data-kind="${kind}" data-id="${r.id}">${options.map(([v,l])=>`<option value="${v}" ${r.statut===v?'selected':''}>${l}</option>`).join('')}</select>`;
+  const del = (kind, r) => `<button class="btn danger small" data-del="${kind}" data-id="${r.id}">Supprimer</button>`;
+  const contact = r => `${esc(r.tel || '')}${r.email ? `<br><a href="mailto:${esc(r.email)}">${esc(r.email)}</a>` : ''}`;
+
+  function render(){
+    const d = data;
+    const attente = d.adhesions.filter(a=>a.statut==='en_attente').length;
+    const promesses = d.dons.filter(x=>x.statut==='promesse');
+    const nonLus = d.messages.filter(m=>!m.lu).length;
+    const recu = d.dons.filter(x=>x.statut==='recu').reduce((s,x)=>s+x.montant,0);
+
+    $('#tAdh').textContent = d.adhesions.length;
+    $('#tAdhHint').textContent = attente ? `${attente} à traiter` : '';
+    $('#tDon').textContent = euros(recu);
+    $('#tDonHint').textContent = promesses.length ? `${promesses.length} promesse(s) : ${euros(promesses.reduce((s,x)=>s+x.montant,0))}` : '';
+    $('#tMsg').textContent = d.messages.length;
+    $('#tMsgHint').textContent = nonLus ? `${nonLus} non lu(s)` : '';
+    $('#tNl').textContent = d.newsletter.length;
+    [['#cAdh',attente],['#cDon',promesses.length],['#cMsg',nonLus]].forEach(([s,n])=>{ $(s).hidden = !n; $(s).textContent = n; });
+
+    table($('#adhesionsTable'), [
+      ['Date', r=>fmtDate(r.created_at)],
+      ['Réf.', r=>`<span class="ref">${esc(r.ref)}</span>`],
+      ['Nom', r=>esc(r.nom)],
+      ['Contact', contact],
+      ['Domaine', r=>esc(r.domaine)],
+      ['Message', r=>esc(r.message||'—'), 'msg'],
+      ['Statut', r=>select('adhesions', r, [['en_attente','En attente'],['validee','Validée'],['refusee','Refusée']])],
+      ['', r=>del('adhesions', r)]
+    ], d.adhesions, r=>r.statut==='en_attente'?'unread':'');
+
+    table($('#donsTable'), [
+      ['Date', r=>fmtDate(r.created_at)],
+      ['Réf.', r=>`<span class="ref">${esc(r.ref)}</span>`],
+      ['Nom', r=>esc(r.nom)],
+      ['Contact', contact],
+      ['Montant', r=>`<strong>${euros(r.montant)}</strong>`],
+      ['Moyen', r=>esc(r.moyen)],
+      ['Statut', r=>select('dons', r, [['promesse','Promesse'],['recu','Reçu'],['annule','Annulé']])],
+      ['', r=>del('dons', r)]
+    ], d.dons, r=>r.statut==='promesse'?'unread':'');
+
+    table($('#messagesTable'), [
+      ['Date', r=>fmtDate(r.created_at)],
+      ['De', r=>`${esc(r.nom)}<br><a href="mailto:${esc(r.email)}?subject=${encodeURIComponent('Re: '+(r.sujet||'Votre message'))}">${esc(r.email)}</a>`],
+      ['Sujet', r=>esc(r.sujet||'—')],
+      ['Message', r=>esc(r.message), 'msg'],
+      ['', r=>`<button class="btn ghost small" data-lu="${r.id}" data-val="${r.lu?0:1}">${r.lu?'Marquer non lu':'Marquer lu'}</button> ${del('messages', r)}`]
+    ], d.messages, r=>r.lu?'':'unread');
+
+    table($('#actualitesTable'), [
+      ['Date', r=>fmtDate(r.created_at)],
+      ['Volet', r=>esc(r.volet)],
+      ['Titre', r=>`<strong>${esc(r.titre)}</strong>`],
+      ['Contenu', r=>esc(r.contenu), 'msg'],
+      ['', r=>del('actualites', r)]
+    ], d.actualites);
+
+    table($('#newsletterTable'), [
+      ['Date', r=>fmtDate(r.created_at)],
+      ['E-mail', r=>`<a href="mailto:${esc(r.email)}">${esc(r.email)}</a>`],
+      ['', r=>del('newsletter', r)]
+    ], d.newsletter);
+  }
+
+  async function refresh(){
+    try{ data = await call('GET','/api/admin/overview'); render(); }catch(e){}
+  }
+
+  document.addEventListener('change', async e=>{
+    const s = e.target.closest('select[data-kind]');
+    if(!s) return;
+    await call('PATCH', `/api/admin/${s.dataset.kind}/${s.dataset.id}`, {statut:s.value});
+    toast('Statut mis à jour'); refresh();
+  });
+
+  document.addEventListener('click', async e=>{
+    const d = e.target.closest('[data-del]');
+    if(d){
+      if(!confirm('Supprimer définitivement cet élément ?')) return;
+      await call('DELETE', `/api/admin/${d.dataset.del}/${d.dataset.id}`);
+      toast('Supprimé'); refresh();
+    }
+    const l = e.target.closest('[data-lu]');
+    if(l){
+      await call('PATCH', `/api/admin/messages/${l.dataset.lu}`, {lu:l.dataset.val==='1'});
+      refresh();
+    }
+  });
+
+  $('#newsForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    await call('POST','/api/admin/actualites', Object.fromEntries(new FormData(e.target)));
+    e.target.reset(); toast('Actualité publiée sur le site'); refresh();
+  });
+
+  if(token) showApp();
+</script>
+</body>
+</html>

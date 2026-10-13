@@ -1,0 +1,17 @@
+{
+  "name": "cooperative-renaissance",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Site et API de la Coopérative Renaissance",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env --disable-warning=ExperimentalWarning server.js",
+    "dev": "node --watch --env-file-if-exists=.env --disable-warning=ExperimentalWarning server.js"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
